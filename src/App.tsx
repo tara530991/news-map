@@ -1,5 +1,8 @@
+import Mapbox from "./pages/Mapbox";
+
 function App() {
-  return <></>;
+  // const now = new Date();
+  return <Mapbox />;
 }
 
 export default App;
