@@ -1,0 +1,7 @@
+.map-container.mapboxgl-map {
+  height: 100lvh;
+}
+
+.map-container.mapboxgl-map .mapboxgl-canvas {
+  height: 100%;
+}
