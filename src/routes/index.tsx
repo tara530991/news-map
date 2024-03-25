@@ -1,10 +1,21 @@
-import { createBrowserRouter } from "react-router-dom";
-import App from "../App";
+import { RouteObject, createBrowserRouter } from "react-router-dom";
+import Mapbox from "../pages/Mapbox";
+import NavLayout from "../components/NavLayout";
 
-const config = [
+const config: RouteObject[] = [
   {
     path: "/",
-    element: <App />,
+    element: <NavLayout />,
+    children: [
+      {
+        path: "/",
+        element: <Mapbox />,
+      },
+      {
+        path: "/test",
+        element: <div>sdfsfa</div>,
+      },
+    ],
   },
 ];
 
