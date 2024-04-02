@@ -1,15 +1,32 @@
 import { useRef, useEffect } from "react";
 import mapboxgl, { Map } from "mapbox-gl";
+import GeoCountryData from "../assets/geo-world_country.json";
 
 // After import mapbox-gl/dist/mapbox-gl.css, the canvas height will be 0
 // So you need to add extra css file to control the container of canvas
 import "mapbox-gl/dist/mapbox-gl.css";
 import "../css/mapbox.css"; // custom css
 
+interface GeoCountry {
+  type: string;
+  features: GeoFeature[];
+}
+
+interface GeoFeature {
+  type: string;
+  properties: object;
+  geometry: {
+    coordinates: number[][][];
+    type: string;
+  };
+}
+
 const Mapbox = () => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<Map | null>(null);
 
+  const geoCountry: GeoCountry[] = GeoCountryData as GeoCountry[];
+  console.log(geoCountry);
   mapboxgl.accessToken =
     "pk.eyJ1IjoidGFyYTUzMDk5MSIsImEiOiJjbHQ1am00aXQwMXA1MmtwZGN5Y2hwb2RwIn0.HMJLTyEcK6uWT5uN7CUoTA";
 
@@ -2577,7 +2594,7 @@ const Mapbox = () => {
         type: "fill",
         source: "test",
         paint: {
-          "fill-color": "#2E5A78",
+          "fill-color": "#333",
           "fill-opacity": [
             "case",
             ["boolean", ["feature-state", "hover"], false],

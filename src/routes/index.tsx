@@ -1,6 +1,7 @@
 import { RouteObject, createBrowserRouter } from "react-router-dom";
 import Mapbox from "../pages/Mapbox";
 import NavLayout from "../components/NavLayout";
+import Test from "../pages/Test";
 
 const config: RouteObject[] = [
   {
@@ -13,7 +14,7 @@ const config: RouteObject[] = [
       },
       {
         path: "/test",
-        element: <div>sdfsfa</div>,
+        element: <Test />,
       },
     ],
   },
