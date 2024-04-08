@@ -1,8 +1,6 @@
 import { useRef, useEffect, useState } from "react";
 import mapboxgl, { Map } from "mapbox-gl";
-// import GeoCountryData from "../assets/geo-world_country.json";
-// import GeoCountryData from "../assets/geo-world_s.json";
-import GeoCountryData from "../assets/geo-world_m.json";
+import GeoCountryData from "../assets/geo-world_country.json";
 import { FeatureCollection } from "geojson";
 
 // After import mapbox-gl/dist/mapbox-gl.css, the canvas height will be 0
