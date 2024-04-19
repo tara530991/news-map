@@ -1,21 +1,33 @@
 import { useRef, useEffect, useState } from "react";
 import mapboxgl, { Map } from "mapbox-gl";
-import GeoCountryData from "../assets/geo-world_m.json";
-import { FeatureCollection } from "geojson";
+import GeoCountryData from "../assets/countries.json";
+import { Geometry, GeoJsonObject } from "geojson";
 
 // After import mapbox-gl/dist/mapbox-gl.css, the canvas height will be 0
 // So you need to add extra css file to control the container of canvas
 import "mapbox-gl/dist/mapbox-gl.css";
 import "../css/mapbox.css"; // custom css
 
-interface customFeature extends FeatureCollection {
+type CustomProperties = {
   name: string;
+  id: string;
+};
+interface CustomFeature<
+  G extends Geometry | null = Geometry,
+  P = CustomProperties
+> extends GeoJsonObject {
+  type: "Feature";
+  geometry: G;
+  id?: string | number | undefined;
+  properties: P;
 }
+type CustomFeatureData = [CustomFeature, string, string];
+
 const Mapbox = () => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<Map | null>(null);
-  const geoCountry: customFeature[] =
-    GeoCountryData as unknown as customFeature[];
+  const geoCountry: CustomFeatureData[] = GeoCountryData[0].data
+    .allData as unknown as CustomFeatureData[];
   const [selectedCountry, setCountry] = useState<string>("");
 
   mapboxgl.accessToken =
@@ -37,19 +49,20 @@ const Mapbox = () => {
     let hoveredPolygonId: string | number | undefined = undefined;
 
     mapInstance.on("load", () => {
-      geoCountry.forEach(({ name, type, features }) => {
-        mapInstance.addSource(name, {
+      geoCountry.forEach((item) => {
+        const f: CustomFeature = item[0];
+        const countryId: string = f.properties.id;
+        const countryName: string = f.properties.name;
+
+        mapInstance.addSource(countryName, {
           type: "geojson",
           generateId: true, // This ensures that all features have unique IDs
-          data: {
-            type: type,
-            features: features,
-          },
+          data: f.geometry,
         });
         mapInstance.addLayer({
-          id: name,
+          id: countryName,
           type: "fill",
-          source: name,
+          source: countryName,
           paint: {
             "fill-color": "#333",
             "fill-opacity": [
@@ -62,30 +75,26 @@ const Mapbox = () => {
         });
         // When the user moves their mouse over the state-fill layer, we'll update the
         // feature state for the feature under the mouse.
-        mapInstance.on("mousemove", name, (e) => {
-          const feature = e?.features;
-          if (!feature) return;
-          setCountry(feature[0].layer.id);
+        mapInstance.on("mousemove", countryName, () => {
+          setCountry(`${countryId} ${countryName}`);
 
-          if (feature.length > 0) {
-            if (hoveredPolygonId !== undefined) {
-              mapInstance.setFeatureState(
-                { source: name, id: hoveredPolygonId },
-                { hover: false }
-              );
-            }
-            hoveredPolygonId = feature[0].id || "";
-            mapInstance.setFeatureState(
-              { source: name, id: hoveredPolygonId },
-              { hover: true }
-            );
-          }
-        });
-
-        mapInstance.on("mouseleave", name, () => {
           if (hoveredPolygonId !== undefined) {
             mapInstance.setFeatureState(
-              { source: name, id: hoveredPolygonId },
+              { source: countryName, id: hoveredPolygonId },
+              { hover: false }
+            );
+          }
+          hoveredPolygonId = countryId || "";
+          mapInstance.setFeatureState(
+            { source: countryName, id: hoveredPolygonId },
+            { hover: true }
+          );
+        });
+
+        mapInstance.on("mouseleave", countryName, () => {
+          if (hoveredPolygonId !== undefined) {
+            mapInstance.setFeatureState(
+              { source: countryName, id: hoveredPolygonId },
               { hover: false }
             );
           }
