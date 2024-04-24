@@ -8,7 +8,7 @@ import NewsData from "../assets/mock-news.json";
 // So you need to add extra css file to control the container of canvas
 import "mapbox-gl/dist/mapbox-gl.css";
 import "../css/mapbox.css"; // custom css
-import { useContentfulCountry } from "../hooks/useContentfulCountry";
+import { calculateMultiPolygonCenter } from "../utils/calculate";
 
 type CustomProperties = {
   name: string;
@@ -44,7 +44,7 @@ const Mapbox = () => {
   const newsList: News[] = NewsData as unknown[] as News[];
 
   // let mapbox mark the highlight countries' list
-  const contentfulCountry = useMemo((): CustomFeature[] => {
+  const hasNewsGeoCountries = useMemo((): CustomFeature[] => {
     const countryMap = new Map();
     newsList.forEach(({ countries }: { countries: string[] }) => {
       geoCountries
@@ -59,19 +59,26 @@ const Mapbox = () => {
     return [...countryMap.values()];
   }, [newsList, geoCountries]);
 
-  const countryNewsMapping = useMemo((): { [key: string]: News[] } => {
-    return newsList.reduce((acc: { [key: string]: News[] }, n: News) => {
-      // const countryInNewsList = n.countries;
-      const accCountries: string[] = Object.keys(acc);
-      n.countries.forEach((c) => {
-        if (accCountries.some((code) => code === c)) {
-          acc[c].push(n);
-        } else {
-          acc[c] = [n];
-        }
-      });
-      return acc;
-    }, {} as { [key: string]: News[] });
+  /**
+   * Description placeholder
+   *
+   * @return {}
+   */
+  const countryNewsMapping = useMemo((): { [countryCode: string]: News[] } => {
+    return newsList.reduce(
+      (acc: { [countryCode: string]: News[] }, n: News) => {
+        const accCountries: string[] = Object.keys(acc);
+        n.countries.forEach((c) => {
+          if (accCountries.some((code) => code === c)) {
+            acc[c].push(n);
+          } else {
+            acc[c] = [n];
+          }
+        });
+        return acc;
+      },
+      {} as { [countryCode: string]: News[] }
+    );
   }, [newsList]);
 
   mapboxgl.accessToken =
@@ -93,15 +100,18 @@ const Mapbox = () => {
     let hoveredPolygonId: string | number | undefined = undefined;
 
     mapInstance.on("load", () => {
-      contentfulCountry.forEach((f) => {
+      hasNewsGeoCountries.forEach((f) => {
         const countryId: string = f.properties.id;
         const countryName: string = f.properties.name;
 
+        // add the data of will be highlight area
         mapInstance.addSource(countryName, {
           type: "geojson",
           generateId: true, // This ensures that all features have unique IDs
           data: f.geometry,
         });
+
+        // add the highlight style
         mapInstance.addLayer({
           id: countryName,
           type: "fill",
@@ -116,6 +126,22 @@ const Mapbox = () => {
             ],
           },
         });
+
+        if (f.geometry.type === "MultiPolygon") {
+          const centerLngLat: [number, number] = calculateMultiPolygonCenter(
+            f.geometry.coordinates
+          );
+
+          const popup = new mapboxgl.Popup({
+            closeOnClick: false,
+            closeButton: false,
+          });
+          popup
+            .setLngLat(centerLngLat)
+            .setText(countryNewsMapping[countryId].length.toString())
+            .setMaxWidth("30px")
+            .addTo(mapInstance);
+        }
 
         // When the user moves their mouse over the state-fill layer, we'll update the
         // feature state for the feature under the mouse.

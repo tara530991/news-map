@@ -1,7 +1,34 @@
 .map-container.mapboxgl-map {
   height: 100lvh;
 }
-
 .map-container.mapboxgl-map .mapboxgl-canvas {
   height: 100%;
+}
+
+.mapboxgl-popup:hover {
+}
+.mapboxgl-popup-content {
+  padding: 3px 5px;
+  pointer-events: auto;
+  text-align: center;
+}
+.mapboxgl-popup-anchor-top:hover .mapboxgl-popup-tip {
+  border-bottom-color: #595959;
+}
+.mapboxgl-popup-anchor-bottom:hover .mapboxgl-popup-tip {
+  border-top-color: #595959;
+}
+.mapboxgl-popup-anchor-right:hover .mapboxgl-popup-tip {
+  border-left-color: #595959;
+}
+.mapboxgl-popup-anchor-left:hover .mapboxgl-popup-tip {
+  border-right-color: #595959;
+}
+.mapboxgl-popup:hover .mapboxgl-popup-tip {
+  cursor: pointer;
+}
+.mapboxgl-popup:hover .mapboxgl-popup-content {
+  background-color: #595959;
+  color: #fff;
+  cursor: pointer;
 }
