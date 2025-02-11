@@ -37,6 +37,9 @@ export interface News {
   countries: string[];
 }
 
+const MAP_ACCESS_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
+const MAP_STYLE = import.meta.env.VITE_MAPBOX_ACCESS_STYLE;
+
 const Mapbox = () => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<MapboxMap | null>(null);
@@ -96,14 +99,15 @@ const Mapbox = () => {
   //   );
   // }, [newsList]);
 
-  mapboxgl.accessToken =
-    "pk.eyJ1IjoidGFyYTUzMDk5MSIsImEiOiJjbHQ1am00aXQwMXA1MmtwZGN5Y2hwb2RwIn0.HMJLTyEcK6uWT5uN7CUoTA";
-
   useEffect(() => {
+    if (!MAP_ACCESS_TOKEN) return;
+    mapboxgl.accessToken = MAP_ACCESS_TOKEN;
+
     if (map.current) return; // initialize map only once
+
     map.current = new mapboxgl.Map({
       container: mapContainer.current || "",
-      style: "mapbox://styles/tara530991/clu0vasea021s01o8bkq8cxl3",
+      style: MAP_STYLE,
       center: [0, 0],
       zoom: 1.5,
       maxZoom: 6,
