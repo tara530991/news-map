@@ -1,18 +1,13 @@
-import { News } from "../pages/Mapbox";
-import {
-  transformCodToName,
-  transformCode3ToCode2,
-} from "../utils/countryCode";
+import { News } from "../types/news";
+import { transformCodeToName } from "../utils/countryCode";
 
 const NewsItem = ({ news }: { news: News }) => {
+  console.log("news: ", news);
   return (
     <section key={news.id} className="mb-4">
       <div className="flex mb-1">
         <div className="shrink-0 flex justify-center items-center w-28 h-20 mr-2 rounded-sm bg-gray-300">
           <p className="text-xs text-gray-500">No Image</p>
-          {/* <img
-            src=""
-          /> */}
         </div>
         <div className="grow flex flex-wrap flex-col justify-between">
           <div>
@@ -21,11 +16,9 @@ const NewsItem = ({ news }: { news: News }) => {
                 return (
                   <img
                     key={c}
-                    src={`https://flagsapi.com/${transformCode3ToCode2(
-                      c
-                    )}/flat/32.png`}
+                    src={`https://flagsapi.com/${c.toLocaleUpperCase()}/flat/32.png`}
                     alt={c}
-                    title={transformCodToName(c)}
+                    title={transformCodeToName(c)}
                     className="inline-block ml-1"
                   />
                 );

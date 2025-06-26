@@ -1,0 +1,272 @@
+[
+  {
+    "code": "ae",
+    "name": "United Arab Emirates",
+    "chineseName": "阿拉伯聯合大公國"
+  },
+  {
+    "code": "ar",
+    "name": "Argentina",
+    "chineseName": "阿根廷"
+  },
+  {
+    "code": "at",
+    "name": "Austria",
+    "chineseName": "奧地利"
+  },
+  {
+    "code": "au",
+    "name": "Australia",
+    "chineseName": "澳洲"
+  },
+  {
+    "code": "be",
+    "name": "Belgium",
+    "chineseName": "比利時"
+  },
+  {
+    "code": "bg",
+    "name": "Bulgaria",
+    "chineseName": "保加利亞"
+  },
+  {
+    "code": "br",
+    "name": "Brazil",
+    "chineseName": "巴西"
+  },
+  {
+    "code": "ca",
+    "name": "Canada",
+    "chineseName": "加拿大"
+  },
+  {
+    "code": "ch",
+    "name": "Switzerland",
+    "chineseName": "瑞士"
+  },
+  {
+    "code": "cn",
+    "name": "China",
+    "chineseName": "中國"
+  },
+  {
+    "code": "co",
+    "name": "Colombia",
+    "chineseName": "哥倫比亞"
+  },
+  {
+    "code": "cu",
+    "name": "Cuba",
+    "chineseName": "古巴"
+  },
+  {
+    "code": "cz",
+    "name": "Czech Republic",
+    "chineseName": "捷克"
+  },
+  {
+    "code": "de",
+    "name": "Germany",
+    "chineseName": "德國"
+  },
+  {
+    "code": "eg",
+    "name": "Egypt",
+    "chineseName": "埃及"
+  },
+  {
+    "code": "fr",
+    "name": "France",
+    "chineseName": "法國"
+  },
+  {
+    "code": "gb",
+    "name": "United Kingdom",
+    "chineseName": "英國"
+  },
+  {
+    "code": "gr",
+    "name": "Greece",
+    "chineseName": "希臘"
+  },
+  {
+    "code": "hk",
+    "name": "Hong Kong",
+    "chineseName": "香港"
+  },
+  {
+    "code": "hu",
+    "name": "Hungary",
+    "chineseName": "匈牙利"
+  },
+  {
+    "code": "id",
+    "name": "Indonesia",
+    "chineseName": "印尼"
+  },
+  {
+    "code": "ie",
+    "name": "Ireland",
+    "chineseName": "愛爾蘭"
+  },
+  {
+    "code": "il",
+    "name": "Israel",
+    "chineseName": "以色列"
+  },
+  {
+    "code": "in",
+    "name": "India",
+    "chineseName": "印度"
+  },
+  {
+    "code": "it",
+    "name": "Italy",
+    "chineseName": "義大利"
+  },
+  {
+    "code": "jp",
+    "name": "Japan",
+    "chineseName": "日本"
+  },
+  {
+    "code": "kr",
+    "name": "South Korea",
+    "chineseName": "南韓"
+  },
+  {
+    "code": "lt",
+    "name": "Lithuania",
+    "chineseName": "立陶宛"
+  },
+  {
+    "code": "lv",
+    "name": "Latvia",
+    "chineseName": "拉脫維亞"
+  },
+  {
+    "code": "ma",
+    "name": "Morocco",
+    "chineseName": "摩洛哥"
+  },
+  {
+    "code": "mx",
+    "name": "Mexico",
+    "chineseName": "墨西哥"
+  },
+  {
+    "code": "my",
+    "name": "Malaysia",
+    "chineseName": "馬來西亞"
+  },
+  {
+    "code": "ng",
+    "name": "Nigeria",
+    "chineseName": "奈及利亞"
+  },
+  {
+    "code": "nl",
+    "name": "Netherlands",
+    "chineseName": "荷蘭"
+  },
+  {
+    "code": "no",
+    "name": "Norway",
+    "chineseName": "挪威"
+  },
+  {
+    "code": "nz",
+    "name": "New Zealand",
+    "chineseName": "紐西蘭"
+  },
+  {
+    "code": "ph",
+    "name": "Philippines",
+    "chineseName": "菲律賓"
+  },
+  {
+    "code": "pl",
+    "name": "Poland",
+    "chineseName": "波蘭"
+  },
+  {
+    "code": "pt",
+    "name": "Portugal",
+    "chineseName": "葡萄牙"
+  },
+  {
+    "code": "ro",
+    "name": "Romania",
+    "chineseName": "羅馬尼亞"
+  },
+  {
+    "code": "rs",
+    "name": "Serbia",
+    "chineseName": "塞爾維亞"
+  },
+  {
+    "code": "ru",
+    "name": "Russia",
+    "chineseName": "俄羅斯"
+  },
+  {
+    "code": "sa",
+    "name": "Saudi Arabia",
+    "chineseName": "沙烏地阿拉伯"
+  },
+  {
+    "code": "se",
+    "name": "Sweden",
+    "chineseName": "瑞典"
+  },
+  {
+    "code": "sg",
+    "name": "Singapore",
+    "chineseName": "新加坡"
+  },
+  {
+    "code": "si",
+    "name": "Slovenia",
+    "chineseName": "斯洛維尼亞"
+  },
+  {
+    "code": "sk",
+    "name": "Slovakia",
+    "chineseName": "斯洛伐克"
+  },
+  {
+    "code": "th",
+    "name": "Thailand",
+    "chineseName": "泰國"
+  },
+  {
+    "code": "tr",
+    "name": "Turkey",
+    "chineseName": "土耳其"
+  },
+  {
+    "code": "tw",
+    "name": "Taiwan",
+    "chineseName": "台灣"
+  },
+  {
+    "code": "ua",
+    "name": "Ukraine",
+    "chineseName": "烏克蘭"
+  },
+  {
+    "code": "us",
+    "name": "United States",
+    "chineseName": "美國"
+  },
+  {
+    "code": "ve",
+    "name": "Venezuela",
+    "chineseName": "委內瑞拉"
+  },
+  {
+    "code": "za",
+    "name": "South Africa",
+    "chineseName": "南非"
+  }
+]
