@@ -38,7 +38,7 @@ export async function fetchTopHeadlines(): Promise<News[]> {
         publicTime: article.publishedAt,
         reporter: "Unknown",
         source: article.source.name,
-        imageUrl: article.url,
+        imageUrl: article.image,
         url: article.url,
         countries: [article.source.country],
       }));

@@ -139,16 +139,11 @@ const Mapbox = () => {
     if (!map.current || hasNewsGeoCountries.length === 0) return;
     const mapInstance = map.current;
     let hoveredPolygonId: string | number | undefined = undefined;
-    console.log("load", hasNewsGeoCountries);
 
-    // mapInstance.on("load", () => {
     const addLayers = () => {
-      console.log("hasNewsGeoCountries: ", hasNewsGeoCountries);
-
       hasNewsGeoCountries.forEach((f) => {
         const countryId: string = f.properties.id;
         const countryName: string = f.properties.name;
-        console.log("countryName: ", countryName);
 
         // add the data of will be highlight area
         if (!mapInstance.getLayer(countryName)) {
@@ -258,30 +253,36 @@ const Mapbox = () => {
       {/* Left Sidebar */}
       <section
         className={cn(
-          activeNews === undefined ? "flex justify-center items-center" : "",
-          "w-80 h-svh p-4 absolute top-0 left-0 z-10 bg-white shadow-xl"
+          activeNews === undefined
+            ? "flex justify-center items-center"
+            : "flex flex-col",
+          "w-80 h-svh absolute top-0 left-0 z-10 bg-white shadow-xl"
         )}
       >
         {selectedCountry && (
-          <h3 className="mb-4 text-center text-xl">{selectedCountry.name}</h3>
+          <h3 className="m-4 text-center text-xl flex-shrink-0">
+            {selectedCountry.name}
+          </h3>
         )}
-        {isLoading ? (
-          <div className="text-gray-400 text-center">
-            <p className="my-3 text-xl font-bold">Loading News...</p>
-          </div>
-        ) : error ? (
-          <div className="text-red-500 text-center">
-            <p className="my-3 text-xl font-bold">Error</p>
-            <p>{error}</p>
-          </div>
-        ) : activeNews === undefined ? (
-          <div className="text-gray-400 text-center">
-            <p className="my-3 text-xl font-bold">News List</p>
-            <p>Choose a country to display it's news</p>
-          </div>
-        ) : (
-          activeNews?.map((n) => <NewsItem key={n.id} news={n} />)
-        )}
+        <section className="flex-1 overflow-y-auto ml-4">
+          {isLoading ? (
+            <div className="text-gray-400 text-center mr-4">
+              <p className="my-3 text-xl font-bold">Loading News...</p>
+            </div>
+          ) : error ? (
+            <div className="text-red-500 text-center mr-4">
+              <p className="my-3 text-xl font-bold">Error</p>
+              <p>{error}</p>
+            </div>
+          ) : activeNews === undefined ? (
+            <div className="text-gray-400 text-center mr-4">
+              <p className="my-3 text-xl font-bold">News List</p>
+              <p>Choose a country to display it's news</p>
+            </div>
+          ) : (
+            activeNews?.map((n) => <NewsItem key={n.id} news={n} />)
+          )}
+        </section>
       </section>
     </div>
   );
