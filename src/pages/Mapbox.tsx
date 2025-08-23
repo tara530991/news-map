@@ -3,20 +3,14 @@ import NewsItem from "../components/NewsItem";
 import cn from "classnames";
 import mapboxgl, { Map as MapboxMap } from "mapbox-gl";
 import GeoCountryData from "../assets/data/countries.json";
-// import { Geometry, GeoJsonObject } from "geojson";
 import { calculateMultiPolygonCenter } from "../utils/calculate";
-// import { fetchAllSources, fetchYesterdayNews } from "../utils/fetchNews";
-// import PinImg from "assets/images/pin.png";
-// import { fetchCNNNews } from "../utils/fetchNews";
 
-// After import mapbox-gl/dist/mapbox-gl.css, the canvas height will be 0
-// So you need to add extra css file to control the container of canvas
 import "mapbox-gl/dist/mapbox-gl.css";
 import "../css/mapbox.css"; // custom css
 import { News } from "../types/news";
 import { CustomFeature, CustomFeatureData } from "../types/geo";
-import { fetchYesterdayNews } from "../utils/fetchNews";
 import { transformAlpha3ToAlpha2 } from "../utils/countryCode";
+import { fetchTopHeadlines } from "../utils/fetchNews";
 
 const MAP_ACCESS_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 const MAP_STYLE = import.meta.env.VITE_MAPBOX_ACCESS_STYLE;
@@ -52,7 +46,7 @@ const Mapbox = () => {
           }
           return false;
         })
-        // 將同一國家的 geo data 集中在一起（本國國土與海外屬地或分割領土）
+        // 將同一國家的 geo data 合併（本國國土與海外屬地或分割領土）
         .forEach((i) => {
           const alpha2Code = transformAlpha3ToAlpha2(i[0].properties.id);
           if (!alpha2Code) return;
@@ -70,14 +64,9 @@ const Mapbox = () => {
           }
         });
     });
-    console.log("Final countryMap: ", [...countryMap.values()]);
 
     return [...countryMap.values()];
   }, [newsList, geoCountries]);
-
-  useEffect(() => {
-    console.log("EFFECT hasNewsGeoCountries: ", hasNewsGeoCountries);
-  }, [hasNewsGeoCountries]);
 
   // /**
   //  * Description placeholder
@@ -107,7 +96,9 @@ const Mapbox = () => {
         setIsLoading(true);
         setError(null);
 
-        const news = await fetchYesterdayNews();
+        const news = await fetchTopHeadlines();
+        console.log("news: ", news);
+
         setNewsList(news);
       } catch (error) {
         console.error("Error loading news:", error);
@@ -133,49 +124,61 @@ const Mapbox = () => {
       center: [0, 0],
       zoom: 1.5,
       maxZoom: 6,
-      minZoom: 1.5,
+      minZoom: 2,
       attributionControl: false,
+      // 添加邊界限制，防止拖拽超出地圖範圍
+      maxBounds: [
+        [-180, -40], // 西南角
+        [180, 40], // 東北角
+      ],
     });
   }, []);
 
   // 地圖上其他事件與樣式
   useEffect(() => {
-    if (!map.current) return;
+    if (!map.current || hasNewsGeoCountries.length === 0) return;
     const mapInstance = map.current;
     let hoveredPolygonId: string | number | undefined = undefined;
+    console.log("load", hasNewsGeoCountries);
 
-    mapInstance.on("load", () => {
+    // mapInstance.on("load", () => {
+    const addLayers = () => {
+      console.log("hasNewsGeoCountries: ", hasNewsGeoCountries);
+
       hasNewsGeoCountries.forEach((f) => {
         const countryId: string = f.properties.id;
         const countryName: string = f.properties.name;
+        console.log("countryName: ", countryName);
 
         // add the data of will be highlight area
-        mapInstance.addSource(countryName, {
-          type: "geojson",
-          generateId: true, // This ensures that all features have unique IDs
-          data: f.geometry,
-        });
+        if (!mapInstance.getLayer(countryName)) {
+          mapInstance.addSource(countryName, {
+            type: "geojson",
+            generateId: true, // This ensures that all features have unique IDs
+            data: f.geometry,
+          });
 
-        // add the highlight style
-        mapInstance.addLayer({
-          id: countryName,
-          type: "fill",
-          source: countryName,
-          paint: {
-            "fill-color": "#333",
-            // 設定填充透明度
-            // 使用 case 表達式根據滑鼠懸停狀態動態改變透明度
-            // 當 feature-state 的 hover 為 true 時透明度為 0.6
-            // 否則為預設透明度 0.3
-            "fill-opacity": [
-              "case",
-              ["boolean", ["feature-state", "hover"], false],
-              0.6,
-              0.3,
-            ],
-            "fill-antialias": true,
-          },
-        });
+          // add the highlight style
+          mapInstance.addLayer({
+            id: countryName,
+            type: "fill",
+            source: countryName,
+            paint: {
+              "fill-color": "#333",
+              // 設定顏色透明度
+              // 使用 case 表達式根據滑鼠移過狀態動態改變透明度
+              // 當 feature-state 的 hover 為 true 時透明度為 0.6
+              // 否則為預設透明度 0.3
+              "fill-opacity": [
+                "case",
+                ["boolean", ["feature-state", "hover"], false],
+                0.6,
+                0.3,
+              ],
+              "fill-antialias": true,
+            },
+          });
+        }
 
         function handleMapClick() {
           if (countryId) {
@@ -192,8 +195,6 @@ const Mapbox = () => {
           const centerLngLat: [number, number] = calculateMultiPolygonCenter(
             f.geometry.coordinates
           );
-
-          console.log("selectedCountry: ", f);
 
           const el = document.createElement("div");
           el.className = `py-1 px-2 bg-gray-700 rounded-md text-white`;
@@ -240,8 +241,14 @@ const Mapbox = () => {
           }
         });
       });
-    });
-  }, [hasNewsGeoCountries, selectedCountry]);
+    };
+
+    if (mapInstance.isStyleLoaded()) {
+      addLayers();
+    } else {
+      mapInstance.on("load", addLayers);
+    }
+  }, [hasNewsGeoCountries, selectedCountry, map]);
 
   return (
     <div className="relative">

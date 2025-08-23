@@ -1,5 +1,7 @@
 .map-container.mapboxgl-map {
   height: 100lvh;
+  background-color: #f0f0f0;
+  overflow: hidden;
 }
 .map-container.mapboxgl-map .mapboxgl-canvas {
   height: 100%;
@@ -31,4 +33,12 @@
   background-color: #595959;
   color: #fff;
   cursor: pointer;
+}
+
+.mapboxgl-canvas-container {
+  background-color: #f0f0f0;
+}
+
+.mapboxgl-map .mapboxgl-canvas {
+  background-color: #f0f0f0;
 }

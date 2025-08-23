@@ -22,6 +22,10 @@ const NavLayout = () => {
   return (
     <>
       <nav className="flex justify-end w-full px-5 py-3 bg-cyan-950">
+        <span className="text-sky-100 text-sm">
+          Note: Currently using news source country as location (NLP content
+          analysis pending)
+        </span>
         {navList.map((item) => (
           <NavLink
             key={item.text}

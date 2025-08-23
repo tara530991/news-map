@@ -2,12 +2,14 @@ import { News } from "../types/news";
 import { transformCodeToName } from "../utils/countryCode";
 
 const NewsItem = ({ news }: { news: News }) => {
-  console.log("news: ", news);
   return (
     <section key={news.id} className="mb-4">
       <div className="flex mb-1">
         <div className="shrink-0 flex justify-center items-center w-28 h-20 mr-2 rounded-sm bg-gray-300">
           <p className="text-xs text-gray-500">No Image</p>
+          {/* <img
+            src={news.}
+          /> */}
         </div>
         <div className="grow flex flex-wrap flex-col justify-between">
           <div>
@@ -26,7 +28,7 @@ const NewsItem = ({ news }: { news: News }) => {
             })}
           </div>
           <div className="text-sm text-gray-600" title="Public time">
-            {news.public_time}
+            {news.publicTime}
           </div>
         </div>
       </div>
