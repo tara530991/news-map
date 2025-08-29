@@ -2,15 +2,13 @@ import { useRef, useEffect, useState, useMemo } from "react";
 import NewsItem from "../components/NewsItem";
 import cn from "classnames";
 import mapboxgl, { Map as MapboxMap } from "mapbox-gl";
-import GeoCountryData from "../assets/data/countries.json";
 import { calculateMultiPolygonCenter } from "../utils/calculate";
 
 import "mapbox-gl/dist/mapbox-gl.css";
 import "../css/mapbox.css"; // custom css
 import { News } from "../types/news";
-import { CustomFeature, CustomFeatureData } from "../types/geo";
-import { transformAlpha3ToAlpha2 } from "../utils/countryCode";
-import { fetchTopHeadlines } from "../utils/fetchNews";
+import { useFetchTopHeadlines } from "../hooks/useFetchTopHeadlines";
+import { useHasNewsCountryGeo } from "../hooks/useHasNewsCountryGeo";
 
 const MAP_ACCESS_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 const MAP_STYLE = import.meta.env.VITE_MAPBOX_ACCESS_STYLE;
@@ -18,55 +16,29 @@ const MAP_STYLE = import.meta.env.VITE_MAPBOX_ACCESS_STYLE;
 const Mapbox = () => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<MapboxMap | null>(null);
-  const geoCountries: CustomFeatureData[] = GeoCountryData[0].data
-    .allData as unknown as CustomFeatureData[];
   const [selectedCountry, setCountry] = useState<{
     id: string;
     name: string;
   }>();
   const [activeNews, setActiveNews] = useState<News[]>();
-  const [newsList, setNewsList] = useState<News[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
-  // let mapbox mark the highlight countries' list
-  const hasNewsGeoCountries = useMemo((): CustomFeature[] => {
-    const countryMap = new Map();
-    if (newsList.length === 0) return [];
+  const { newsList, isLoading, error } = useFetchTopHeadlines();
 
-    newsList.forEach(({ countries }: { countries: string[] }) => {
-      geoCountries
-        // 找出 newsList 有哪些國家，並 geoCountries 取出將其轉換為 alpha2 代碼
-        .filter((c) => {
-          if (c[0].properties.id.length === 3) {
-            const alpha2Code = transformAlpha3ToAlpha2(c[0].properties.id);
-            const isMatch = alpha2Code && countries.includes(alpha2Code);
+  // newsList 中所有國家的 country codes，且去重複
+  const uniqueCountryCodes = useMemo(
+    (): string[] => [...new Set(newsList.map((n) => n.countries).flat())],
+    [newsList]
+  );
 
-            return isMatch;
-          }
-          return false;
-        })
-        // 將同一國家的 geo data 合併（本國國土與海外屬地或分割領土）
-        .forEach((i) => {
-          const alpha2Code = transformAlpha3ToAlpha2(i[0].properties.id);
-          if (!alpha2Code) return;
+  const hasNewsGeoCountries = useHasNewsCountryGeo(
+    newsList,
+    uniqueCountryCodes
+  );
 
-          const news: News[] = newsList.filter((n) =>
-            n.countries.some((c) => c === alpha2Code)
-          );
+  console.log("uniqueCountryCodes: ", uniqueCountryCodes);
+  console.log("countryCodes: ", newsList.map((n) => n.countries).flat());
 
-          if (!countryMap.has(alpha2Code)) {
-            i[0] = {
-              ...i[0],
-              properties: { ...i[0].properties, news },
-            };
-            countryMap.set(alpha2Code, i[0]);
-          }
-        });
-    });
-
-    return [...countryMap.values()];
-  }, [newsList, geoCountries]);
+  console.log("hasNewsGeoCountries: ", hasNewsGeoCountries);
 
   // /**
   //  * Description placeholder
@@ -90,28 +62,8 @@ const Mapbox = () => {
   //   );
   // }, [newsList]);
 
-  useEffect(() => {
-    async function loadNews() {
-      try {
-        setIsLoading(true);
-        setError(null);
-
-        const news = await fetchTopHeadlines();
-        console.log("news: ", news);
-
-        setNewsList(news);
-      } catch (error) {
-        console.error("Error loading news:", error);
-        setError("Failed to load news. Please try again later.");
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    loadNews();
-  }, []);
-
   // initialize map
+
   useEffect(() => {
     if (!MAP_ACCESS_TOKEN) return;
     mapboxgl.accessToken = MAP_ACCESS_TOKEN;
@@ -127,10 +79,10 @@ const Mapbox = () => {
       minZoom: 2,
       attributionControl: false,
       // 添加邊界限制，防止拖拽超出地圖範圍
-      maxBounds: [
-        [-180, -40], // 西南角
-        [180, 40], // 東北角
-      ],
+      // maxBounds: [
+      //   [-180, -40], // 西南角
+      //   [180, 40], // 東北角
+      // ],
     });
   }, []);
 
@@ -139,6 +91,22 @@ const Mapbox = () => {
     if (!map.current || hasNewsGeoCountries.length === 0) return;
     const mapInstance = map.current;
     let hoveredPolygonId: string | number | undefined = undefined;
+
+    // 清理舊的事件監聽器和圖層
+    const cleanup = () => {
+      hasNewsGeoCountries.forEach((f) => {
+        const countryName = f.properties.name;
+        if (mapInstance.getLayer(countryName)) {
+          mapInstance.removeLayer(countryName);
+        }
+        if (mapInstance.getSource(countryName)) {
+          mapInstance.removeSource(countryName);
+        }
+      });
+    };
+
+    // 清理舊的圖層和事件
+    cleanup();
 
     const addLayers = () => {
       hasNewsGeoCountries.forEach((f) => {
@@ -243,12 +211,12 @@ const Mapbox = () => {
     } else {
       mapInstance.on("load", addLayers);
     }
-  }, [hasNewsGeoCountries, selectedCountry, map]);
+  }, [hasNewsGeoCountries, selectedCountry]);
 
   return (
     <div className="relative">
       {/* Map */}
-      <div ref={mapContainer} className="map-container" />
+      <section ref={mapContainer} className="map-container" />
 
       {/* Left Sidebar */}
       <section
@@ -266,9 +234,7 @@ const Mapbox = () => {
         )}
         <section className="flex-1 overflow-y-auto ml-4">
           {isLoading ? (
-            <div className="text-gray-400 text-center mr-4">
-              <p className="my-3 text-xl font-bold">Loading News...</p>
-            </div>
+            <div className="mr-4"></div>
           ) : error ? (
             <div className="text-red-500 text-center mr-4">
               <p className="my-3 text-xl font-bold">Error</p>

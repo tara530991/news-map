@@ -11,7 +11,8 @@ export const getNewsApiCountryCode = () => {
 };
 
 export const transformAlpha3ToAlpha2 = (code: string): string | undefined => {
-  if (code.length !== 3) throw "code length is wrong";
+  if (code.length < 3)
+    throw `Code "${code}" length is wrong, should be or more than 3`;
   const country = geoCountryCode.find(
     (c) => c.alpha3 === code.toLocaleLowerCase()
   );
@@ -22,7 +23,7 @@ export const transformAlpha3ToAlpha2 = (code: string): string | undefined => {
 };
 
 export const transformAlpha2ToAlpha3 = (code: string): string | undefined => {
-  if (code.length !== 2) throw "code length is wrong";
+  if (code.length !== 2) throw `Code "${code}" length is wrong, should be 3`;
 
   const country = geoCountryCode.find(
     (c) => c.alpha2 === code.toLocaleLowerCase()

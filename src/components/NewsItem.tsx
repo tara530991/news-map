@@ -1,7 +1,13 @@
 import { News } from "../types/news";
 import { transformCodeToName } from "../utils/countryCode";
+import Skeleton from "react-loading-skeleton";
+import "react-loading-skeleton/dist/skeleton.css";
 
 const NewsItem = ({ news }: { news: News }) => {
+  if (!news) {
+    return <Skeleton count={3} height={100} />;
+  }
+
   return (
     <div key={news.id} className="mb-4">
       <div className="flex mb-1">
