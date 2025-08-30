@@ -1,5 +1,5 @@
 import { useRef, useEffect, useState, useMemo } from "react";
-import NewsItem from "../components/NewsItem";
+import NewsItem, { NewsItemSkeleton } from "../components/NewsItem";
 import cn from "classnames";
 import mapboxgl, { Map as MapboxMap } from "mapbox-gl";
 import { calculateMultiPolygonCenter } from "../utils/calculate";
@@ -9,6 +9,7 @@ import "../css/mapbox.css"; // custom css
 import { News } from "../types/news";
 import { useFetchTopHeadlines } from "../hooks/useFetchTopHeadlines";
 import { useHasNewsCountryGeo } from "../hooks/useHasNewsCountryGeo";
+import { useFlagPreloader } from "../hooks/useFlagPreloader";
 
 const MAP_ACCESS_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 const MAP_STYLE = import.meta.env.VITE_MAPBOX_ACCESS_STYLE;
@@ -29,41 +30,13 @@ const Mapbox = () => {
     (): string[] => [...new Set(newsList.map((n) => n.countries).flat())],
     [newsList]
   );
-
+  useFlagPreloader(uniqueCountryCodes);
   const hasNewsGeoCountries = useHasNewsCountryGeo(
     newsList,
     uniqueCountryCodes
   );
 
-  console.log("uniqueCountryCodes: ", uniqueCountryCodes);
-  console.log("countryCodes: ", newsList.map((n) => n.countries).flat());
-
-  console.log("hasNewsGeoCountries: ", hasNewsGeoCountries);
-
-  // /**
-  //  * Description placeholder
-  //  *
-  //  * @return {}
-  //  */
-  // const countryNewsMapping = useMemo((): { [countryCode: string]: News[] } => {
-  //   return newsList.reduce(
-  //     (acc: { [countryCode: string]: News[] }, n: News) => {
-  //       const accCountries: string[] = Object.keys(acc);
-  //       n.countries.forEach((c) => {
-  //         if (accCountries.some((code) => code === c)) {
-  //           acc[c].push(n);
-  //         } else {
-  //           acc[c] = [n];
-  //         }
-  //       });
-  //       return acc;
-  //     },
-  //     {} as { [countryCode: string]: News[] }
-  //   );
-  // }, [newsList]);
-
   // initialize map
-
   useEffect(() => {
     if (!MAP_ACCESS_TOKEN) return;
     mapboxgl.accessToken = MAP_ACCESS_TOKEN;
@@ -232,18 +205,21 @@ const Mapbox = () => {
             {selectedCountry.name}
           </h3>
         )}
-        <section className="flex-1 overflow-y-auto ml-4">
-          {isLoading ? (
-            <div className="mr-4"></div>
-          ) : error ? (
-            <div className="text-red-500 text-center mr-4">
-              <p className="my-3 text-xl font-bold">Error</p>
-              <p>{error}</p>
-            </div>
-          ) : activeNews === undefined ? (
-            <div className="text-gray-400 text-center mr-4">
+        <section className="flex-1 overflow-y-auto mx-4">
+          {activeNews === undefined ? (
+            <div className="text-gray-400 text-center">
               <p className="my-3 text-xl font-bold">News List</p>
               <p>Choose a country to display it's news</p>
+            </div>
+          ) : isLoading ? (
+            // 顯示多個 skeleton 來模擬新聞列表
+            Array.from({ length: 3 }).map((_, index) => (
+              <NewsItemSkeleton key={index} />
+            ))
+          ) : error ? (
+            <div className="text-red-500 text-center">
+              <p className="my-3 text-xl font-bold">Error</p>
+              <p>{error}</p>
             </div>
           ) : (
             activeNews?.map((n) => <NewsItem key={n.id} news={n} />)

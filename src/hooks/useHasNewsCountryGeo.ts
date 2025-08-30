@@ -26,15 +26,7 @@ export const useHasNewsCountryGeo = (
     uniqueCountryCodes.forEach((countryCode) => {
       geoCountries.forEach((i) => {
         const alpha2Code = transformAlpha3ToAlpha2(i[0].properties.id);
-        if (!alpha2Code || alpha2Code !== countryCode) {
-          console.log(
-            "Country code cannot mapping, geo data's alpha2Code: ",
-            alpha2Code,
-            " , countryCode from fetch data: ",
-            countryCode
-          );
-          return;
-        }
+        if (!alpha2Code || alpha2Code !== countryCode) return;
 
         const news: News[] = newsList.filter((n) =>
           n.countries.some((c) => c === alpha2Code)

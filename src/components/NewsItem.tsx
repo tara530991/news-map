@@ -1,13 +1,42 @@
 import { News } from "../types/news";
-import { transformCodeToName } from "../utils/countryCode";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
+import CountryFlag from "./CountryFlag";
+
+// Skeleton 組件
+export const NewsItemSkeleton = () => {
+  return (
+    <div className="mb-4">
+      <div className="flex mb-1">
+        {/* 圖片 skeleton */}
+        <div className="shrink-0 w-28 h-20 mr-2">
+          <Skeleton height={80} />
+        </div>
+
+        {/* 右側內容 skeleton */}
+        <div className="grow flex flex-wrap flex-col justify-between">
+          <div>
+            {/* 國旗 skeleton */}
+            <div className="flex gap-1 mb-2">
+              <Skeleton width={32} height={24} />
+              <Skeleton width={32} height={24} />
+              <Skeleton width={32} height={24} />
+            </div>
+          </div>
+          <div>
+            {/* 時間 skeleton */}
+            <Skeleton width={80} height={14} />
+          </div>
+        </div>
+      </div>
+
+      {/* 標題 skeleton */}
+      <Skeleton count={2} height={16} className="mb-1" />
+    </div>
+  );
+};
 
 const NewsItem = ({ news }: { news: News }) => {
-  if (!news) {
-    return <Skeleton count={3} height={100} />;
-  }
-
   return (
     <div key={news.id} className="mb-4">
       <div className="flex mb-1">
@@ -38,12 +67,11 @@ const NewsItem = ({ news }: { news: News }) => {
             {news.countries.map((c, i) => {
               if (i < 3) {
                 return (
-                  <img
+                  <CountryFlag
                     key={c}
-                    src={`https://flagsapi.com/${c.toLocaleUpperCase()}/flat/32.png`}
-                    alt={c}
-                    title={transformCodeToName(c)}
-                    className="inline-block ml-1"
+                    countryCode={c}
+                    size={32}
+                    className="inline-block ml-1 object-contain"
                   />
                 );
               }
