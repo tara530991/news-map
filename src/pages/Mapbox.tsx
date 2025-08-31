@@ -7,7 +7,7 @@ import { calculateMultiPolygonCenter } from "../utils/calculate";
 import "mapbox-gl/dist/mapbox-gl.css";
 import "../css/mapbox.css"; // custom css
 import { News } from "../types/news";
-import { useFetchTopHeadlines } from "../hooks/useFetchTopHeadlines";
+import { useTopHeadlinesQuery } from "../api/news";
 import { useHasNewsCountryGeo } from "../hooks/useHasNewsCountryGeo";
 import { useFlagPreloader } from "../hooks/useFlagPreloader";
 
@@ -17,17 +17,18 @@ const MAP_STYLE = import.meta.env.VITE_MAPBOX_ACCESS_STYLE;
 const Mapbox = () => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<MapboxMap | null>(null);
+
   const [selectedCountry, setCountry] = useState<{
     id: string;
     name: string;
   }>();
   const [activeNews, setActiveNews] = useState<News[]>();
 
-  const { newsList, isLoading, error } = useFetchTopHeadlines();
+  const { data: newsList = [], isLoading, error } = useTopHeadlinesQuery();
 
   // newsList 中所有國家的 country codes，且去重複
   const uniqueCountryCodes = useMemo(
-    (): string[] => [...new Set(newsList.map((n) => n.countries).flat())],
+    (): string[] => [...new Set(newsList.map((n: News) => n.countries).flat())],
     [newsList]
   );
   useFlagPreloader(uniqueCountryCodes);
@@ -219,7 +220,7 @@ const Mapbox = () => {
           ) : error ? (
             <div className="text-red-500 text-center">
               <p className="my-3 text-xl font-bold">Error</p>
-              <p>{error}</p>
+              <p>{error.message}</p>
             </div>
           ) : (
             activeNews?.map((n) => <NewsItem key={n.id} news={n} />)

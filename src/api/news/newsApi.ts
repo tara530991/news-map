@@ -3,7 +3,7 @@ import {
   NewsAPIResponse,
   NewsAPIResponseData,
   NewsAPIResponseDataArticle,
-} from "../types/news";
+} from "../../types/news";
 
 const NEWS_API_BASE_URL = import.meta.env.VITE_NEWS_API;
 
@@ -47,6 +47,20 @@ export async function fetchTopHeadlines(): Promise<News[]> {
     }
   } catch (error) {
     console.error("Error fetching news:", error);
-    return [];
+    throw new Error("Failed to fetch news");
   }
+}
+
+// 可以添加更多新聞相關的 API 函數
+export async function fetchNewsByCountry(countryCode: string): Promise<News[]> {
+  console.log("fetchNewsByCountry", countryCode);
+
+  // 實現按國家獲取新聞的邏輯
+  throw new Error("Not implemented");
+}
+
+export async function fetchNewsByCategory(category: string): Promise<News[]> {
+  console.log("fetchNewsByCategory", category);
+  // 實現按分類獲取新聞的邏輯
+  throw new Error("Not implemented");
 }
