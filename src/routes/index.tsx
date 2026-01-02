@@ -1,7 +1,7 @@
 import { RouteObject, createBrowserRouter } from "react-router-dom";
-import Mapbox from "../pages/Mapbox";
 import NavLayout from "../components/NavLayout";
-import Test from "../pages/Test";
+import TestPage from "../pages/TestPage";
+import MapPage from "../pages/MapPage";
 
 const config: RouteObject[] = [
   {
@@ -10,11 +10,11 @@ const config: RouteObject[] = [
     children: [
       {
         path: "/",
-        element: <Mapbox />,
+        element: <MapPage />,
       },
       {
         path: "/test",
-        element: <Test />,
+        element: <TestPage />,
       },
     ],
   },

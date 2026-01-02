@@ -1,49 +1,35 @@
-import { useRef, useEffect, useState, useMemo } from "react";
-import NewsItem, { NewsItemSkeleton } from "../components/NewsItem";
-import cn from "classnames";
+import { useRef, useEffect, useMemo } from "react";
 import mapboxgl, { Map as MapboxMap } from "mapbox-gl";
 import { calculateMultiPolygonCenter } from "../utils/calculate";
 
 import "mapbox-gl/dist/mapbox-gl.css";
 import "../css/mapbox.css"; // custom css
 import { News } from "../types/news";
-import { useTopHeadlinesQuery } from "../api/news";
 import { useHasNewsCountryGeo } from "../hooks/useHasNewsCountryGeo";
 import { useFlagPreloader } from "../hooks/useFlagPreloader";
 
 const MAP_ACCESS_TOKEN = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 const MAP_STYLE = import.meta.env.VITE_MAPBOX_ACCESS_STYLE;
 
-const Mapbox = () => {
+const Mapbox = ({
+  newsList,
+  onMapClick,
+}: {
+  newsList: News[];
+  onMapClick: (countryId: string, countryName: string, news: News[]) => void;
+}) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<MapboxMap | null>(null);
 
-  const [selectedCountry, setCountry] = useState<{
-    id: string;
-    name: string;
-  }>();
-  const [activeNews, setActiveNews] = useState<News[]>();
-
-  const {
-    data: newsList,
-    isLoading,
-    error,
-  } = useTopHeadlinesQuery({
-    select: (data) => data ?? [],
-    staleTime: 1000 * 60 * 5, // 5 minutes
-  });
-  const stableNewsList = useMemo(() => newsList ?? [], [newsList]);
-
   // newsList 中所有國家的 country codes，且去重複
   const uniqueCountryCodes = useMemo(
-    (): string[] => [
-      ...new Set(stableNewsList.flatMap((n: News) => n.countries)),
-    ],
-    [stableNewsList]
+    (): string[] => [...new Set(newsList.flatMap((n: News) => n.countries))],
+    [newsList]
   );
+
   useFlagPreloader(uniqueCountryCodes);
   const hasNewsGeoCountries = useHasNewsCountryGeo(
-    stableNewsList,
+    newsList,
     uniqueCountryCodes
   );
 
@@ -75,9 +61,44 @@ const Mapbox = () => {
     if (!map.current || hasNewsGeoCountries.length === 0) return;
     const mapInstance = map.current;
     let hoveredPolygonId: string | number | undefined = undefined;
+    const markers: mapboxgl.Marker[] = [];
+    const clickHandlers: Array<{ layer: string; handler: () => void }> = [];
+    const mousemoveHandlers: Array<{
+      layer: string;
+      handler: (e: mapboxgl.MapLayerMouseEvent) => void;
+    }> = [];
+    const mouseleaveHandlers: Array<{ layer: string; handler: () => void }> =
+      [];
+    let loadHandler: (() => void) | null = null;
 
     // 清理舊的事件監聽器和圖層
     const cleanup = () => {
+      // 移除所有標記
+      markers.forEach((marker) => marker.remove());
+      markers.length = 0;
+
+      // 移除所有事件監聽器
+      clickHandlers.forEach(({ layer, handler }) => {
+        mapInstance.off("click", layer, handler);
+      });
+      clickHandlers.length = 0;
+
+      mousemoveHandlers.forEach(({ layer, handler }) => {
+        mapInstance.off("mousemove", layer, handler);
+      });
+      mousemoveHandlers.length = 0;
+
+      mouseleaveHandlers.forEach(({ layer, handler }) => {
+        mapInstance.off("mouseleave", layer, handler);
+      });
+      mouseleaveHandlers.length = 0;
+
+      if (loadHandler) {
+        mapInstance.off("load", loadHandler);
+        loadHandler = null;
+      }
+
+      // 移除所有圖層和數據源
       hasNewsGeoCountries.forEach((f) => {
         const countryName = f.properties.name;
         if (mapInstance.getLayer(countryName)) {
@@ -127,16 +148,6 @@ const Mapbox = () => {
           });
         }
 
-        function handleMapClick() {
-          if (countryId) {
-            setCountry({ id: countryId, name: countryName });
-            setActiveNews(f.properties.news);
-          } else {
-            setCountry(undefined);
-            setActiveNews(undefined);
-          }
-        }
-
         let marker: mapboxgl.Marker | null = null;
         if (f.geometry.type === "MultiPolygon") {
           const centerLngLat: [number, number] = calculateMultiPolygonCenter(
@@ -149,19 +160,23 @@ const Mapbox = () => {
           marker = new mapboxgl.Marker(el);
 
           marker.setLngLat(centerLngLat).addTo(mapInstance);
+          markers.push(marker);
 
           // 添加 popup 點擊事件監聽
-          marker.getElement().addEventListener("click", () => {
-            handleMapClick();
-          });
+          const markerClickHandler = () => {
+            onMapClick(countryId, countryName, f.properties.news || []);
+          };
+          marker.getElement().addEventListener("click", markerClickHandler);
         }
 
-        mapInstance.on("click", countryName, () => {
-          handleMapClick();
-        });
+        const clickHandler = () => {
+          onMapClick(countryId, countryName, f.properties.news || []);
+        };
+        mapInstance.on("click", countryName, clickHandler);
+        clickHandlers.push({ layer: countryName, handler: clickHandler });
 
-        // 修改 mousemove 事件處理
-        mapInstance.on("mousemove", countryName, (e) => {
+        // 修改 mousemove 事件处理
+        const mousemoveHandler = (e: mapboxgl.MapLayerMouseEvent) => {
           if (e.features && e.features.length > 0) {
             if (hoveredPolygonId !== undefined) {
               mapInstance.setFeatureState(
@@ -175,10 +190,15 @@ const Mapbox = () => {
               { hover: true }
             );
           }
+        };
+        mapInstance.on("mousemove", countryName, mousemoveHandler);
+        mousemoveHandlers.push({
+          layer: countryName,
+          handler: mousemoveHandler,
         });
 
         // 修改 mouseleave 事件處理
-        mapInstance.on("mouseleave", countryName, () => {
+        const mouseleaveHandler = () => {
           if (hoveredPolygonId !== undefined) {
             mapInstance.setFeatureState(
               { source: countryName, id: hoveredPolygonId },
@@ -186,6 +206,11 @@ const Mapbox = () => {
             );
             hoveredPolygonId = undefined;
           }
+        };
+        mapInstance.on("mouseleave", countryName, mouseleaveHandler);
+        mouseleaveHandlers.push({
+          layer: countryName,
+          handler: mouseleaveHandler,
         });
       });
     };
@@ -193,52 +218,16 @@ const Mapbox = () => {
     if (mapInstance.isStyleLoaded()) {
       addLayers();
     } else {
-      mapInstance.on("load", addLayers);
+      loadHandler = () => {
+        addLayers();
+      };
+      mapInstance.on("load", loadHandler);
     }
-  }, [hasNewsGeoCountries, selectedCountry]);
 
-  return (
-    <div className="relative">
-      {/* Map */}
-      <section ref={mapContainer} className="map-container" />
+    return cleanup;
+  }, [hasNewsGeoCountries, onMapClick]);
 
-      {/* Left Sidebar */}
-      <section
-        className={cn(
-          activeNews === undefined
-            ? "flex justify-center items-center"
-            : "flex flex-col",
-          "w-80 h-svh absolute top-0 left-0 z-10 bg-white shadow-xl"
-        )}
-      >
-        {selectedCountry && (
-          <h3 className="m-4 text-center text-xl flex-shrink-0">
-            {selectedCountry.name}
-          </h3>
-        )}
-        <section className="flex-1 overflow-y-auto mx-4">
-          {activeNews === undefined ? (
-            <div className="text-gray-400 text-center">
-              <p className="my-3 text-xl font-bold">News List</p>
-              <p>Choose a country to display it's news</p>
-            </div>
-          ) : isLoading ? (
-            // 顯示多個 skeleton 來模擬新聞列表
-            Array.from({ length: 3 }).map((_, index) => (
-              <NewsItemSkeleton key={index} />
-            ))
-          ) : error ? (
-            <div className="text-red-500 text-center">
-              <p className="my-3 text-xl font-bold">Error</p>
-              <p>{error.message}</p>
-            </div>
-          ) : (
-            activeNews?.map((n) => <NewsItem key={n.id} news={n} />)
-          )}
-        </section>
-      </section>
-    </div>
-  );
+  return <section ref={mapContainer} className="map-container" />;
 };
 
 export default Mapbox;

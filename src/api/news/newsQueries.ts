@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, UseQueryOptions } from "@tanstack/react-query";
 import {
   fetchTopHeadlines,
   fetchNewsByCountry,
@@ -6,21 +6,30 @@ import {
 } from "./newsApi";
 import { News } from "../../types/news";
 
+type UseTopHeadlinesQuery<TData = News[]> = Partial<
+  UseQueryOptions<News[], Error, TData>
+>;
+
 // Query Keys
 export const newsKeys = {
-  all: ["news"] as const,
-  topHeadlines: () => [...newsKeys.all, "top-headlines"] as const,
-  byCountry: (countryCode: string) =>
-    [...newsKeys.all, "by-country", countryCode] as const,
-  byCategory: (category: string) =>
-    [...newsKeys.all, "by-category", category] as const,
+  all: ["news"],
+  topHeadlines: () => [...newsKeys.all, "top-headlines"],
+  byCountry: (countryCode: string) => [
+    ...newsKeys.all,
+    "by-country",
+    countryCode,
+  ],
+  byCategory: (category: string) => [...newsKeys.all, "by-category", category],
 };
 
 // Hooks
-export const useTopHeadlinesQuery = () => {
-  return useQuery<News[], Error>({
+export const useTopHeadlinesQuery = <TData = News[]>(
+  options?: UseTopHeadlinesQuery<TData>
+) => {
+  return useQuery<News[], Error, TData>({
     queryKey: newsKeys.topHeadlines(),
     queryFn: fetchTopHeadlines,
+    ...options,
   });
 };
 
